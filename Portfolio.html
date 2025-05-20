@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jane Doe Portfolio</title>
+  <style>
+    /* Reset and font */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    html, body {
+      scroll-behavior: smooth;
+      background: #000;
+      color: #fff;
+    }
+
+    /* Hero section with parallax wave */
+    .hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: linear-gradient(180deg, #000 60%, #111);
+    }
+
+    .wave {
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 50% 50%, #111 25%, transparent 70%);
+      animation: wave 8s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    @keyframes wave {
+      0% {
+        transform: translate(-25%, -25%) scale(1.1);
+      }
+      100% {
+        transform: translate(-20%, -20%) scale(1.4);
+      }
+    }
+
+    .hero-text {
+      z-index: 1;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1.5s ease-out forwards;
+      animation-delay: 1s;
+    }
+
+    .hero-text h1 {
+      font-size: 3rem;
+      letter-spacing: 2px;
+    }
+
+    .hero-text p {
+      font-size: 1.2rem;
+      color: #ccc;
+      margin-top: 10px;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Section styling */
+    section {
+      padding: 80px 20px;
+      max-width: 900px;
+      margin: auto;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 1s ease-out;
+    }
+
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #444;
+      display: inline-block;
+    }
+
+    .portfolio-item {
+      margin-bottom: 40px;
+    }
+
+    .portfolio-item img {
+      width: 100%;
+      border: 1px solid #333;
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      border-top: 1px solid #222;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    a {
+      color: #888;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero / Intro -->
+  <div class="hero">
+    <div class="wave"></div>
+    <div class="hero-text">
+      <h1>Jane Doe</h1>
+      <p>Creative Developer & Designer</p>
+    </div>
+  </div>
+
+  <!-- About Section -->
+  <section id="about">
+    <h2>About Me</h2>
+    <p>I’m a creative front-end developer passionate about elegant UI/UX and interactive web experiences. I enjoy turning ideas into beautifully crafted websites and applications.</p>
+  </section>
+
+  <!-- Portfolio Section -->
+  <section id="portfolio">
+    <h2>Portfolio</h2>
+    <div class="portfolio-item">
+      <h3>Project One</h3>
+      <p>A sleek personal blog built with HTML, CSS, and JavaScript.</p>
+      <img src="https://via.placeholder.com/800x400" alt="Project One">
+    </div>
+    <div class="portfolio-item">
+      <h3>Project Two</h3>
+      <p>An animated portfolio website designed with a mobile-first approach.</p>
+      <img src="https://via.placeholder.com/800x400" alt="Project Two">
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>Email: janedoe@example.com</p>
+    <p>LinkedIn: <a href="#">linkedin.com/in/janedoe</a></p>
+  </section>
+
+  <footer>
+    &copy; 2025 Jane Doe. All rights reserved.
+  </footer>
+
+  <!-- Scroll Animation Script -->
+  <script>
+    const sections = document.querySelectorAll("section");
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => {
+      observer.observe(section);
+    });
+  </script>
+</body>
+</html>

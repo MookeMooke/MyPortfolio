@@ -1,0 +1,108 @@
+// src/App.jsx
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Projects from "./pages/Projects";
+import Contact from "./pages/Contact";
+
+function App() {
+  return (
+    <Router>
+      <div className="bg-white text-gray-900 font-sans">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+
+// src/pages/Home.jsx
+import React from "react";
+import { Link } from "react-router-dom";
+
+export default function Home() {
+  return (
+    <main className="min-h-screen flex flex-col justify-center items-center px-4 text-center">
+      <h1 className="text-5xl font-bold mb-4">[Your Name]</h1>
+      <p className="text-xl max-w-xl">
+        Mechanical Engineer turned Social Designer. Exploring the intersection of design, sustainability, and systems thinking.
+      </p>
+      <div className="mt-6 space-x-4">
+        <Link to="/projects" className="px-4 py-2 bg-black text-white rounded-2xl shadow">View Projects</Link>
+        <Link to="/about" className="px-4 py-2 border border-black rounded-2xl">About Me</Link>
+      </div>
+    </main>
+  );
+}
+
+// src/pages/About.jsx
+import React from "react";
+
+export default function About() {
+  return (
+    <section className="max-w-3xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-4">About Me</h2>
+      <p className="text-lg leading-relaxed">
+        I’m [Your Name], a mechanical engineer passionate about transforming systems through thoughtful design. My work focuses on addressing complex problems across sustainability, urban design, and equitable futures. I’m applying to the MA Design Products at RCA to deepen this practice.
+      </p>
+    </section>
+  );
+}
+
+// src/pages/Projects.jsx
+import React from "react";
+
+const projects = [
+  {
+    title: "Reimagining Water Access in Informal Settlements",
+    description: "A system-based intervention to improve equitable access to clean water in underserved communities, aligning with UN SDG 6.",
+  },
+  {
+    title: "The Slow Tech Furniture System",
+    description: "A modular, sustainable furniture collection made from reclaimed materials, inspired by circular design principles.",
+  },
+  {
+    title: "Systems for Care in Urban India",
+    description: "Exploring design solutions that support aging populations in rapidly changing urban contexts through inclusive, human-centered products.",
+  },
+];
+
+export default function Projects() {
+  return (
+    <section className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6">Selected Projects</h2>
+      <div className="space-y-8">
+        {projects.map((project, index) => (
+          <div key={index} className="p-4 border rounded-xl shadow-sm">
+            <h3 className="text-xl font-semibold">{project.title}</h3>
+            <p className="mt-2 text-gray-700">{project.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// src/pages/Contact.jsx
+import React from "react";
+
+export default function Contact() {
+  return (
+    <section className="max-w-2xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-4">Contact</h2>
+      <p className="text-lg mb-4">Feel free to reach out for collaborations, questions, or just to connect!</p>
+      <ul className="space-y-2">
+        <li>Email: <a href="mailto:you@example.com" className="text-blue-600">you@example.com</a></li>
+        <li>Instagram: <a href="https://instagram.com/yourhandle" className="text-blue-600">@yourhandle</a></li>
+        <li>LinkedIn: <a href="https://linkedin.com/in/yourprofile" className="text-blue-600">Your Name</a></li>
+      </ul>
+    </section>
+  );
+}
