@@ -93,8 +93,13 @@
     left.replaceChildren(...kids);
   }
   function rename(o) {
-    const n = prompt('Name', o.name);
-    if (n && n.trim()) edit(() => { o.name = n.trim(); });
+    const dlg = $('ask'), input = $('askInput');
+    input.value = o.name;
+    dlg.onclose = () => {
+      const n = input.value.trim();
+      if (dlg.returnValue === 'ok' && n) edit(() => { o.name = n; });
+    };
+    dlg.showModal(); input.select();
   }
   function addScene() {
     const p = P(), cur = store.scene();
@@ -341,7 +346,7 @@
 
   addEventListener('keydown', (e) => {
     if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
-    if ($('help').open) return;
+    if ($('help').open || $('ask').open) return;
     const p = P(), k = e.key, mod = e.ctrlKey || e.metaKey;
     if (mod && (k === 'z' || k === 'Z')) { e.preventDefault(); e.shiftKey ? store.redo() : store.undo(); return; }
     if (mod && (k === 'y' || k === 'Y')) { e.preventDefault(); store.redo(); return; }
@@ -418,6 +423,11 @@
   PM.audio.onended = syncTop;
 
   async function openOutput() {
+    if (desktop) {
+      window.open('output.html', 'pm-output', 'popup');
+      if (!(await window.pmDesktop.hasProjector())) toast('No projector found, so the output opened as a normal window. Plug the projector in and reopen it.');
+      return;
+    }
     let feat = 'popup,width=960,height=540';
     try {
       if ('getScreenDetails' in window) {
@@ -431,6 +441,18 @@
     else toast('Drag the new window onto the projector if needed, then click it for fullscreen.');
   }
   $('btnOutput').onclick = openOutput;
+
+  /* Desktop app: called once by the shell after load. */
+  const desktop = !!window.pmDesktop;
+  window.PMDesktopReady = (info) => {
+    if (!localStorage.getItem('pm.desktopAudio')) { localStorage.setItem('pm.desktopAudio', '1'); P().settings.audio = 'system'; }
+    if (P().settings.audio === 'system') setAudio('system', true);
+    if (info && info.projector && P().surfaces.length) openOutput();
+  };
+  if (desktop) {
+    $('selAudio').querySelector('[value=system]').textContent = 'Music: laptop sound';
+    document.body.classList.add('desktop');
+  }
 
   store.onMessage((m) => {
     if (m.t === 'hello') {

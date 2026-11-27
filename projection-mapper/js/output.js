@@ -59,8 +59,11 @@
   }
   requestAnimationFrame(frame);
 
+  const desktop = !!window.pmDesktop; // the desktop app places and fullscreens this window itself
+  if (desktop) document.body.classList.add('full');
   function fullscreen() {
     PM.audio.resume();
+    if (desktop) return;
     if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
   }
   document.addEventListener('fullscreenchange', () => document.body.classList.toggle('full', !!document.fullscreenElement));

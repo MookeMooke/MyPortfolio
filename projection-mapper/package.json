@@ -1,0 +1,23 @@
+{
+  "name": "projection-mapper",
+  "version": "1.0.0",
+  "description": "Projection mapping for a living room wall",
+  "main": "desktop/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.5.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "app.projectionmapper.desktop",
+    "productName": "Projection Mapper",
+    "files": ["index.html", "output.html", "css/**", "js/**", "desktop/**"],
+    "directories": { "output": "dist" },
+    "win": { "target": "portable" },
+    "portable": { "artifactName": "ProjectionMapper.exe" }
+  }
+}

@@ -2,7 +2,19 @@
 
 A browser app for projection mapping onto a wall. No install, no build step.
 
-## Run it
+## Desktop app (Windows, no install)
+
+`ProjectionMapper.exe` is a single file. Double-click it; nothing is installed.
+
+- The projector window opens fullscreen on the projector by itself. Esc closes it.
+- Music-reactive effects follow whatever the laptop is playing (Spotify, YouTube, anything). No setup.
+- Layouts and media are kept in your Windows user profile, so they survive restarts.
+- Windows may show a "Windows protected your PC" warning the first time, because the app is not code-signed. Choose **More info**, then **Run anyway**.
+
+The `.exe` is built by the "Projection Mapper desktop build" GitHub Action (download it from the run's Artifacts),
+or locally with `npm install` then `npm run dist`. `npm start` runs it without packaging.
+
+## Run it in a browser instead
 
 Use Chrome or Edge on the laptop that is plugged into the projector.
 
@@ -46,3 +58,4 @@ Keys: arrows nudge 1 pixel (Shift = 10), Tab = next point, G = guides, T = test 
 - `js/effects.js`: effect shaders
 - `js/store.js`: project data, saving, sync between windows, media library
 - `js/audio.js`, `js/widgets.js`: sound analysis; clock, weather, slideshow
+- `desktop/`, `package.json`: the desktop shell (Electron)

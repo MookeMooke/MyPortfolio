@@ -25,7 +25,8 @@
     async start(source) {
       PM.audio.stop();
       if (source === 'system') {
-        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        // A video track is required by the API; keep it tiny since only the sound is used.
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 1, width: 320 }, audio: true });
         if (!stream.getAudioTracks().length) {
           stream.getTracks().forEach((t) => t.stop());
           stream = null;

@@ -1,0 +1,29 @@
+name: Projection Mapper desktop build
+on:
+  push:
+    paths:
+      - 'projection-mapper/**'
+      - '.github/workflows/projection-mapper-desktop.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: projection-mapper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: projection-mapper/package-lock.json
+      - run: npm ci
+      - run: npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProjectionMapper-windows
+          path: projection-mapper/dist/ProjectionMapper.exe
+          if-no-files-found: error

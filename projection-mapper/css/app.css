@@ -72,3 +72,4 @@ dialog h2 { margin: 0 0 8px; font-size: 18px; }
 dialog h3 { margin-top: 16px; }
 dialog li { margin: 5px 0; }
 kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; font: inherit; }
+body:not(.desktop) .desktop-only, body.desktop .web-only { display: none; }

@@ -41,7 +41,7 @@
 <dialog id="help">
   <h2>How to use</h2>
   <ol>
-    <li><b>Open projector window</b>, drag it onto the projector screen if needed, then click it for fullscreen.</li>
+    <li><b>Open projector window</b>. <span class="web-only">Drag it onto the projector screen if needed, then click it for fullscreen.</span><span class="desktop-only">It goes fullscreen on the projector by itself. Esc closes it.</span></li>
     <li><b>Add surface</b>. Drag its yellow points until it fits the object on your wall. Watch the wall, not the laptop.</li>
     <li>For curved things, raise <b>Grid</b> in the right panel to get more points.</li>
     <li>Pick <b>Content</b> for the surface: image, video, effect, clock and so on.</li>
@@ -53,6 +53,13 @@
   <kbd>G</kbd> guides · <kbd>T</kbd> test pattern · <kbd>B</kbd> blackout · <kbd>1</kbd>–<kbd>9</kbd> scenes · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</p>
   <p class="muted">Everything saves automatically in this browser. Export saves the layout only; media files stay in this browser.</p>
   <form method="dialog"><button class="primary">Got it</button></form>
+</dialog>
+<dialog id="ask">
+  <form method="dialog">
+    <h2>Name</h2>
+    <input type="text" id="askInput" maxlength="60" style="width:280px">
+    <div class="btnrow"><button class="primary" value="ok">OK</button><button value="cancel">Cancel</button></div>
+  </form>
 </dialog>
 <input type="file" id="fileMedia" accept="image/*,video/*" multiple hidden>
 <input type="file" id="fileImport" accept="application/json,.json" hidden>
