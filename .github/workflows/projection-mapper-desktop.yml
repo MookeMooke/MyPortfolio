@@ -22,8 +22,33 @@ jobs:
           cache-dependency-path: projection-mapper/package-lock.json
       - run: npm ci
       - run: npm run dist
+      - name: Start the app on Windows (folder build)
+        shell: pwsh
+        run: |
+          $env:PM_SELFTEST = "$env:RUNNER_TEMP\folder.json"
+          $t = Measure-Command {
+            $p = Start-Process -FilePath "dist\win-unpacked\Projection Mapper.exe" -PassThru
+            if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "The app did not finish its self-test in 2 minutes" }
+          }
+          "Seconds: $($t.TotalSeconds)"
+          Get-Content $env:PM_SELFTEST
+          if (-not (Get-Content $env:PM_SELFTEST | ConvertFrom-Json).ok) { throw "Self-test failed" }
+      - name: Start the app on Windows (single-file build)
+        shell: pwsh
+        run: |
+          $env:PM_SELFTEST = "$env:RUNNER_TEMP\single.json"
+          $t = Measure-Command {
+            $p = Start-Process -FilePath "dist\ProjectionMapper.exe" -PassThru
+            if (-not $p.WaitForExit(240000)) { $p.Kill(); throw "The app did not finish its self-test in 4 minutes" }
+          }
+          "Seconds: $($t.TotalSeconds)"
+          Get-Content $env:PM_SELFTEST
+          if (-not (Get-Content $env:PM_SELFTEST | ConvertFrom-Json).ok) { throw "Self-test failed" }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: ProjectionMapper-windows
-          path: projection-mapper/dist/ProjectionMapper.exe
+          path: |
+            projection-mapper/dist/ProjectionMapper-windows.zip
+            projection-mapper/dist/ProjectionMapper.exe
           if-no-files-found: error

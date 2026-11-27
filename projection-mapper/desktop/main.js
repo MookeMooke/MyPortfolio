@@ -1,6 +1,6 @@
 /* Desktop shell: serves the app from a private origin, puts the output fullscreen on the
    projector, and feeds the laptop's own sound output to the music-reactive effects. */
-const { app, BrowserWindow, protocol, net, session, desktopCapturer, screen, Menu, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, protocol, net, session, desktopCapturer, screen, Menu, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const http = require('http');
@@ -12,6 +12,23 @@ const ROOT = path.join(__dirname, '..');
 const ORIGIN = 'app://local/';
 const preload = path.join(__dirname, 'preload.js');
 let editor = null, output = null;
+
+/* A failed start must never be silent. PM_SELFTEST (a file path) makes the app check itself,
+   write the result there and quit; the build uses it to prove the app starts on Windows. */
+const SELFTEST = process.env.PM_SELFTEST || '';
+const T0 = Date.now();
+function selfTestDone(result) {
+  try { fs.writeFileSync(SELFTEST, JSON.stringify(Object.assign({ ms: Date.now() - T0 }, result))); } catch (e) { /* ignore */ }
+  app.exit(result.ok ? 0 : 1);
+}
+function fatal(err) {
+  const text = String((err && err.stack) || err);
+  if (SELFTEST) return selfTestDone({ ok: false, error: text });
+  dialog.showErrorBox('Projection Mapper could not start', text);
+  app.exit(1);
+}
+process.on('uncaughtException', fatal);
+process.on('unhandledRejection', fatal);
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }]);
 
@@ -55,7 +72,15 @@ function createEditor() {
     win.webContents.on('before-input-event', (e, input) => { if (input.type === 'keyDown' && input.key === 'Escape') win.close(); });
     win.on('closed', () => { output = null; });
   });
+  editor.webContents.on('did-fail-load', (e, code, desc, url, isMain) => { if (isMain) fatal(new Error('Page failed to load: ' + desc + ' ' + url)); });
+  editor.webContents.on('render-process-gone', (e, d) => fatal(new Error('Window process stopped: ' + d.reason)));
   editor.webContents.on('did-finish-load', () => {
+    if (SELFTEST) {
+      editor.webContents.executeJavaScript('({ pm: !!window.PM, desktop: !!window.pmDesktop, webgl: !!window.PMDebug, lists: document.querySelectorAll("#left h3").length })')
+        .then((r) => selfTestDone(Object.assign({ ok: r.pm && r.desktop && r.lists === 4, visible: editor.isVisible(), remotePort: remote.port }, r)))
+        .catch(fatal);
+      return;
+    }
     const info = JSON.stringify({ projector: !!projector() });
     // Run with a user gesture so sound capture and the output window may start by themselves.
     editor.webContents.executeJavaScript(`window.PMDesktopReady && window.PMDesktopReady(${info})`, true).catch(() => {});
