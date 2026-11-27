@@ -15,7 +15,8 @@ uniform vec3 uA, uB, uC;
 uniform float uSpec[32];
 uniform sampler2D uTex;
 uniform vec2 uFlip;
-uniform vec4 uBrick; // bricks across, courses, shift alternate rows, show outlines
+uniform vec4 uBrick;  // bricks across, rows (both may be fractional), shift alternate rows, show outlines
+uniform vec4 uBrick2; // half joint width / height as a fraction of one brick, pattern offset x / y in bricks
 #define T (uTime*uSpeed)
 #define BASS (uAudio.x*uReact)
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -103,19 +104,18 @@ void main(){
     /* Equalizer drawn brick by brick. UK brick 215 x 65 mm with 10 mm mortar joints (225 x 75 mm per
        brick and joint), stretcher bond: every other course is shifted by half a brick. */
     bricks: `vec4 effect(vec2 uv){
-      float nx=max(1.,uBrick.x), ny=max(1.,uBrick.y);
-      float row=floor(uv.y*ny); float up=ny-1.-row;
-      float off=mod(row+uBrick.z,2.)*.5;
-      float x=uv.x*nx+off; float col=floor(x);
-      vec2 f=vec2(fract(x),fract(uv.y*ny));
-      vec2 j=vec2(10./225.,10./75.)*.5;
+      float nx=max(.5,uBrick.x), ny=max(.5,uBrick.y);
+      float yb=(1.-uv.y)*ny+uBrick2.w; float up=floor(yb);
+      float off=mod(up+uBrick.z,2.)*.5;
+      float x=uv.x*nx+uBrick2.z+off; float col=floor(x);
+      vec2 f=vec2(fract(x),fract(yb)); vec2 j=uBrick2.xy;
       float inside=step(j.x,f.x)*step(f.x,1.-j.x)*step(j.y,f.y)*step(f.y,1.-j.y);
       if(uBrick.w>.5){ float m=1.-inside; return vec4(uB*m,m); }
-      float cx=clamp((col+.5-off)/nx,0.,1.);
+      float cx=clamp((col+.5-off-uBrick2.z)/nx,0.,1.);
       float v=spec(cx)*(.4+uReact);
       v=max(v,.09+.07*sin(T*2.+col*1.7));
       float lit=clamp((v*ny-up)*4.,0.,1.);
-      float h=(up+.5)/ny;
+      float h=clamp((up+.5)/ny,0.,1.);
       vec3 c=mix(uA,uB,smoothstep(0.,.6,h)); c=mix(c,uC,smoothstep(.6,1.,h));
       float a=lit*inside; return vec4(c*a,a); }`,
     pulse: `vec4 effect(vec2 uv){

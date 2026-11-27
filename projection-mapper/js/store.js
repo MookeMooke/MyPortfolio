@@ -27,11 +27,24 @@
       h24: true,
       seconds: false,
       date: true,
-      bricksX: 8,
-      bricksY: 12,
+      areaW: 180, // cm: the wall area the brick equalizer covers
+      areaH: 90,
+      brickL: 215, // mm: UK standard brick face and mortar joint
+      brickH: 65,
+      brickJ: 10,
+      brickOX: 0, // where the pattern starts, in bricks
+      brickOY: 0,
       brickShift: false,
       brickGuide: false,
     };
+  };
+
+  /* Brick equalizer: how many bricks fit the area, and the joint size relative to one brick. */
+  PM.brickLayout = function (c) {
+    const pos = (v, d) => (v > 0 && isFinite(v) ? v : d);
+    const L = pos(c.brickL, 215), H = pos(c.brickH, 65), J = Math.max(0, isFinite(c.brickJ) ? c.brickJ : 10);
+    const nx = Math.min(200, (pos(c.areaW, 180) * 10) / (L + J)), ny = Math.min(200, (pos(c.areaH, 90) * 10) / (H + J));
+    return { nx, ny, jx: J / (L + J) / 2, jy: J / (H + J) / 2 };
   };
 
   PM.makeSurface = function (n) {

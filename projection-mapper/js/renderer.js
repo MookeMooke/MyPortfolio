@@ -103,7 +103,7 @@
       gl.linkProgram(p);
       if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(name + ': ' + gl.getProgramInfoLog(p));
       const u = {};
-      for (const n of ['uTime', 'uOpacity', 'uSpeed', 'uScale', 'uReact', 'uFeather', 'uBright', 'uAspect', 'uAudio', 'uA', 'uB', 'uC', 'uSpec', 'uTex', 'uFlip', 'uBrick']) {
+      for (const n of ['uTime', 'uOpacity', 'uSpeed', 'uScale', 'uReact', 'uFeather', 'uBright', 'uAspect', 'uAudio', 'uA', 'uB', 'uC', 'uSpec', 'uTex', 'uFlip', 'uBrick', 'uBrick2']) {
         u[n] = gl.getUniformLocation(p, n === 'uSpec' ? 'uSpec[0]' : n);
       }
       return (this.programs[name] = { p, u, aPos: gl.getAttribLocation(p, 'aPos'), aUv: gl.getAttribLocation(p, 'aUv') });
@@ -221,7 +221,11 @@
       gl.uniform3fv(u.uC, hex(c.colorC));
       if (u.uSpec) gl.uniform1fv(u.uSpec, a.spec);
       gl.uniform2f(u.uFlip, c.flipH ? 1 : 0, c.flipV ? 1 : 0);
-      if (u.uBrick) gl.uniform4f(u.uBrick, c.bricksX || 8, c.bricksY || 12, c.brickShift ? 1 : 0, c.brickGuide ? 1 : 0);
+      if (u.uBrick) {
+        const b = PM.brickLayout(c);
+        gl.uniform4f(u.uBrick, b.nx, b.ny, c.brickShift ? 1 : 0, c.brickGuide ? 1 : 0);
+        gl.uniform4f(u.uBrick2, b.jx, b.jy, c.brickOX || 0, c.brickOY || 0);
+      }
       if (tex) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex); gl.uniform1i(u.uTex, 0); }
       gl.blendFunc(gl.ONE, c.blend === 'add' ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA);
       gl.drawElements(gl.TRIANGLES, m.count, gl.UNSIGNED_SHORT, 0);

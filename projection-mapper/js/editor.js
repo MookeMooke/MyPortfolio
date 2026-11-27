@@ -114,19 +114,26 @@
     select('surface', s.id);
   }
   /* Preset: an equalizer that lights real bricks. Starts in line-up mode. */
+  /* A rectangle on screen with the same proportions as the measured wall area. */
+  function brickShape(s, c) {
+    const st = P().settings, ar = (c.areaW / c.areaH) * (st.outH / st.outW);
+    let w = 0.6, hh = w / ar;
+    if (hh > 0.7) { hh = 0.7; w = hh * ar; }
+    const x0 = 0.5 - w / 2, y0 = 0.5 - hh / 2;
+    s.cols = 2; s.rows = 2;
+    s.points = [[x0, y0], [x0 + w, y0], [x0, y0 + hh], [x0 + w, y0 + hh]];
+  }
   function addBrickEq() {
     const p = P(), s = PM.makeSurface(p.surfaces.length + 1);
     s.name = 'Brick equalizer';
-    // 8 bricks x 12 rows of UK bricks (225 x 75 mm with joints) is 1.8 m x 0.9 m: keep that shape on screen.
-    const hh = 0.5, w = hh * 2 * (p.settings.outH / p.settings.outW), x0 = 0.5 - w / 2, y0 = 0.25;
-    s.points = [[x0, y0], [x0 + w, y0], [x0, y0 + hh], [x0 + w, y0 + hh]];
+    brickShape(s, PM.defaultContent());
     p.surfaces.push(s);
     for (const sc of p.scenes) sc.contents[s.id] = PM.defaultContent('none');
-    Object.assign(store.scene().contents[s.id], { type: 'effect', effect: 'bricks', bricksX: 8, bricksY: 12, brickGuide: true,
+    Object.assign(store.scene().contents[s.id], { type: 'effect', effect: 'bricks', brickGuide: true,
       colorA: '#ff9a2e', colorB: '#ffb648', colorC: '#ffd27a', react: 1 });
     store.changed('edit'); store.commit();
     select('surface', s.id);
-    toast(PM.audio.active ? 'Line up the lines with your mortar, then untick "Show brick lines".' : ('Line up the lines with your mortar, untick "Show brick lines", and turn Music on in the top bar.'));
+    toast(PM.audio.active ? 'Enter your wall area and brick size on the right, then line the lines up with your mortar.' : ('Enter your wall area and brick size on the right, line the lines up with your mortar, and turn Music on in the top bar.'));
   }
   function startMask() {
     tool = 'mask'; draft = []; cursor = null;
@@ -235,11 +242,22 @@
     if (t === 'effect') {
       out.push(choose('Effect', c, 'effect', PM.EFFECTS));
       if (c.effect === 'bricks') {
-        const num = (label, k, max) => field(label, h('input', { type: 'number', min: 1, max, step: 1, value: c[k],
-          oninput: (e) => { const v = Math.round(+e.target.value); if (v >= 1 && v <= max) { c[k] = v; live(); } }, onchange: () => store.commit() }));
-        out.push(num('Bricks across', 'bricksX', 60), num('Rows of bricks', 'bricksY', 60));
+        const fits = h('div', { class: 'muted' });
+        const showFits = () => { const b = PM.brickLayout(c); fits.textContent = `Fits ${b.nx.toFixed(1)} bricks across × ${b.ny.toFixed(1)} rows.`; };
+        const num = (label, k, min, max, step) => field(label, h('input', { type: 'number', min, max, step, value: c[k],
+          oninput: (e) => { const v = +e.target.value; if (e.target.value !== '' && v >= min && v <= max) { c[k] = v; live(); showFits(); } }, onchange: () => store.commit() }));
+        out.push(h('h3', null, 'Wall area (cm)'));
+        out.push(num('Width', 'areaW', 10, 2000, 1), num('Height', 'areaH', 10, 2000, 1));
+        out.push(h('div', { class: 'btnrow' }, h('button', { class: 'small', title: 'Reset the surface to a rectangle with these proportions', onclick: () => edit(() => { brickShape(selSurface(), c); ui.selPoint = -1; }) }, 'Fit shape to area')));
+        out.push(h('h3', null, 'Brick size (mm)'));
+        out.push(num('Length', 'brickL', 50, 600, 0.5), num('Height', 'brickH', 20, 400, 0.5), num('Mortar joint', 'brickJ', 0, 40, 0.5));
+        out.push(fits);
+        out.push(h('div', { class: 'btnrow' }, h('button', { class: 'small', onclick: () => { edit(() => { c.brickL = 215; c.brickH = 65; c.brickJ = 10; }); renderInspector(true); } }, 'UK standard (215 × 65, 10 joint)')));
+        out.push(h('h3', null, 'Line up'));
         out.push(check('Show brick lines', c, 'brickGuide'), check('Shift rows', c, 'brickShift'));
-        out.push(h('div', { class: 'muted' }, 'Count the bricks inside the surface on your wall and enter them. Turn on brick lines, then drag the points until the lines sit on the mortar. Use Shift rows if the half-brick offset is on the wrong rows.'));
+        out.push(range('Slide sideways', c, 'brickOX', 0, 1, 0.005), range('Slide up', c, 'brickOY', 0, 1, 0.005));
+        out.push(h('div', { class: 'muted' }, 'Measure the part of the wall to light and enter it above. Drag the four corner points to the corners of that area on the wall. Then use the slides until the lines sit on the mortar.'));
+        showFits();
       }
       out.push(field('Colours',
         ...['colorA', 'colorB', 'colorC'].map((k) => h('input', { type: 'color', value: c[k], oninput: (e) => { c[k] = e.target.value; live(); }, onchange: () => store.commit() }))));

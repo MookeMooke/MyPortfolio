@@ -10,9 +10,9 @@ Download `ProjectionMapper-windows.zip`, right-click it and choose **Extract All
 There is also a single-file `ProjectionMapper.exe`. It unpacks itself on every start, so it shows nothing for
 up to a minute before the window appears. Prefer the zip.
 
-**Brick equalizer**: click **+ Brick EQ**. Enter how many bricks across and how many rows are inside the surface,
-drag the points until the lines sit on your mortar, then untick **Show brick lines**. Proportions are
-standard UK bricks (215 × 65 mm, 10 mm joints, half-brick offset per row).
+**Brick equalizer**: click **+ Brick EQ**. Enter the size of the wall area to light (cm) and your brick size (mm; UK
+standard 215 × 65 with 10 mm joints is the default). Drag the four corner points to the corners of that area on the
+wall, use the slides until the lines sit on the mortar, then untick **Show brick lines**.
 
 - The projector window opens fullscreen on the projector by itself. Esc closes it.
 - Music-reactive effects follow whatever the laptop is playing (Spotify, YouTube, anything). No setup.
