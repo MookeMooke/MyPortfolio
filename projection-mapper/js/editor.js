@@ -250,6 +250,7 @@
         const showFits = () => { const b = PM.brickLayout(c); fits.textContent = `Fits ${b.nx.toFixed(1)} bricks across × ${b.ny.toFixed(1)} rows.`; };
         const num = (label, k, min, max, step) => field(label, h('input', { type: 'number', min, max, step, value: c[k],
           oninput: (e) => { const v = +e.target.value; if (e.target.value !== '' && v >= min && v <= max) { c[k] = v; live(); showFits(); } }, onchange: () => store.commit() }));
+        out.push(choose('Bars grow', c, 'brickDir', [['lr', 'Left to right'], ['rl', 'Right to left'], ['up', 'Bottom to top']]));
         out.push(h('h3', null, 'Wall area (cm)'));
         out.push(num('Width', 'areaW', 10, 2000, 1), num('Height', 'areaH', 10, 2000, 1));
         out.push(h('div', { class: 'btnrow' }, h('button', { class: 'small', title: 'Reset the surface to a rectangle with these proportions', onclick: () => edit(() => { brickShape(selSurface(), c); ui.selPoint = -1; }) }, 'Fit shape to area')));

@@ -105,17 +105,23 @@ void main(){
        brick and joint), stretcher bond: every other course is shifted by half a brick. */
     bricks: `vec4 effect(vec2 uv){
       float nx=max(.5,uBrick.x), ny=max(.5,uBrick.y);
+      float dir=floor(uBrick.z*.5+.01), shift=mod(uBrick.z,2.);
       float yb=(1.-uv.y)*ny+uBrick2.w; float up=floor(yb);
-      float off=mod(up+uBrick.z,2.)*.5;
+      float off=mod(up+shift,2.)*.5;
       float x=uv.x*nx+uBrick2.z+off; float col=floor(x);
       vec2 f=vec2(fract(x),fract(yb)); vec2 j=uBrick2.xy;
       float inside=step(j.x,f.x)*step(f.x,1.-j.x)*step(j.y,f.y)*step(f.y,1.-j.y);
       if(uBrick.w>.5){ float m=1.-inside; return vec4(uB*m,m); }
-      float cx=clamp((col+.5-off-uBrick2.z)/nx,0.,1.);
-      float v=spec(cx)*(.4+uReact);
-      v=max(v,.09+.07*sin(T*2.+col*1.7));
-      float lit=clamp((v*ny-up)*4.,0.,1.);
-      float h=clamp((up+.5)/ny,0.,1.);
+      float bx=col-off-uBrick2.z; // left edge of this brick, in bricks from the left of the area
+      float lit, h;
+      if(dir>.5 && dir<1.5){ // bars rise from the bottom: one band per column
+        float v=spec(clamp((bx+.5)/nx,0.,1.))*(.4+uReact);
+        lit=clamp((v*ny-up-.35)*4.,0.,1.); h=clamp((up+.5)/ny,0.,1.);
+      } else { // bars run sideways: one band per row of bricks, bass at the bottom
+        float v=spec(clamp((up+.5)/ny,0.,1.))*(.4+uReact);
+        float pos=dir<.5 ? max(bx,0.) : max(nx-bx-1.,0.);
+        lit=clamp((v*nx-pos-.35)*4.,0.,1.); h=clamp((pos+.5)/nx,0.,1.);
+      }
       vec3 c=mix(uA,uB,smoothstep(0.,.6,h)); c=mix(c,uC,smoothstep(.6,1.,h));
       float a=lit*inside; return vec4(c*a,a); }`,
     pulse: `vec4 effect(vec2 uv){

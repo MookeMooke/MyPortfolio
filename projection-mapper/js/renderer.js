@@ -223,7 +223,7 @@
       gl.uniform2f(u.uFlip, c.flipH ? 1 : 0, c.flipV ? 1 : 0);
       if (u.uBrick) {
         const b = PM.brickLayout(c);
-        gl.uniform4f(u.uBrick, b.nx, b.ny, c.brickShift ? 1 : 0, c.brickGuide ? 1 : 0);
+        gl.uniform4f(u.uBrick, b.nx, b.ny, (c.brickShift ? 1 : 0) + 2 * ({ lr: 0, up: 1, rl: 2 }[c.brickDir] || 0), c.brickGuide ? 1 : 0);
         gl.uniform4f(u.uBrick2, b.jx, b.jy, c.brickOX || 0, c.brickOY || 0);
       }
       if (tex) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex); gl.uniform1i(u.uTex, 0); }

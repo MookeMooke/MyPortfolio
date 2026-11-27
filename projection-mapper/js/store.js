@@ -32,6 +32,7 @@
       brickL: 215, // mm: UK standard brick face and mortar joint
       brickH: 65,
       brickJ: 10,
+      brickDir: 'lr', // bars grow left to right; 'rl' right to left, 'up' from the bottom
       brickOX: 0, // where the pattern starts, in bricks
       brickOY: 0,
       brickShift: false,
