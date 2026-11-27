@@ -1,6 +1,6 @@
 {
   "name": "projection-mapper",
-  "version": "1.0.0",
+  "version": "7.0.0",
   "description": "Projection mapping for a living room wall",
   "main": "desktop/main.js",
   "private": true,
@@ -20,7 +20,7 @@
     "productName": "Projection Mapper",
     "files": ["index.html", "output.html", "css/**", "js/**", "desktop/**"],
     "directories": { "output": "dist" },
-    "win": { "target": ["zip", "portable"], "artifactName": "ProjectionMapper-windows.${ext}" },
-    "portable": { "artifactName": "ProjectionMapper.exe" }
+    "win": { "target": ["zip", "portable"], "artifactName": "ProjectionMapper-v${version}-windows.${ext}" },
+    "portable": { "artifactName": "ProjectionMapper-v${version}.exe" }
   }
 }

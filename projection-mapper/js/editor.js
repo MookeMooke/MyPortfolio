@@ -515,6 +515,8 @@
   if (desktop) {
     $('selAudio').querySelector('[value=system]').textContent = 'Music: laptop sound';
     document.body.classList.add('desktop');
+    document.querySelector('.brand').textContent = 'Projection Mapper ' + window.pmDesktop.version;
+    document.title = 'Projection Mapper ' + window.pmDesktop.version;
 
     /* Phone remote: publish what the phone needs, apply what it sends. */
     let stateTimer = 0;

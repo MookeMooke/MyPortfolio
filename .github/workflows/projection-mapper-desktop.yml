@@ -38,7 +38,7 @@ jobs:
         run: |
           $env:PM_SELFTEST = "$env:RUNNER_TEMP\single.json"
           $t = Measure-Command {
-            $p = Start-Process -FilePath "dist\ProjectionMapper.exe" -PassThru
+            $p = Start-Process -FilePath (Get-ChildItem "dist\ProjectionMapper-v*.exe")[0].FullName -PassThru
             if (-not $p.WaitForExit(240000)) { $p.Kill(); throw "The app did not finish its self-test in 4 minutes" }
           }
           "Seconds: $($t.TotalSeconds)"
@@ -49,6 +49,6 @@ jobs:
         with:
           name: ProjectionMapper-windows
           path: |
-            projection-mapper/dist/ProjectionMapper-windows.zip
-            projection-mapper/dist/ProjectionMapper.exe
+            projection-mapper/dist/ProjectionMapper-v*-windows.zip
+            projection-mapper/dist/ProjectionMapper-v*.exe
           if-no-files-found: error

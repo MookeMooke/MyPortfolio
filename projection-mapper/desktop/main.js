@@ -34,7 +34,16 @@ process.on('unhandledRejection', fatal);
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }]);
 
-if (!app.requestSingleInstanceLock()) app.quit();
+const VERSION = 'V' + app.getVersion().split('.')[0];
+// Another copy is already open (possibly an older version): say so instead of quietly handing over to it.
+if (!app.requestSingleInstanceLock()) {
+  if (!SELFTEST) {
+    dialog.showErrorBox('Projection Mapper is already open',
+      `You are opening ${VERSION}, but a copy of Projection Mapper is already running.\n\n` +
+      'If you just downloaded a newer version, close the old one first (look in the taskbar, or end "Projection Mapper" in Task Manager), then open this one again.');
+  }
+  app.exit(0);
+}
 app.on('second-instance', () => { if (editor) { if (editor.isMinimized()) editor.restore(); editor.focus(); } });
 
 /* The display the editor is not on. */
@@ -79,12 +88,12 @@ function createEditor() {
   editor.webContents.on('did-finish-load', () => {
     if (SELFTEST) {
       const probe = `(async () => {
-        const r = { pm: !!window.PM, desktop: !!window.pmDesktop, webgl: !!window.PMDebug, lists: document.querySelectorAll("#left h3").length };
+        const r = { pm: !!window.PM, desktop: !!window.pmDesktop, webgl: !!window.PMDebug, lists: document.querySelectorAll("#left h3").length, shownVersion: document.querySelector(".brand").textContent };
         try { await PM.audio.start('system'); r.audio = 'started'; r.audioContext = PM.audio.state(); } catch (e) { r.audio = 'failed: ' + (e && (e.name + ' ' + e.message)); }
         return r;
       })()`;
       editor.webContents.executeJavaScript(probe, true)
-        .then((r) => selfTestDone(Object.assign({ ok: r.pm && r.desktop && r.lists === 4, visible: editor.isVisible(), remotePort: remote.port }, r)))
+        .then((r) => selfTestDone(Object.assign({ version: VERSION, shown: r.shownVersion, ok: r.pm && r.desktop && r.lists === 4, visible: editor.isVisible(), remotePort: remote.port }, r)))
         .catch(fatal);
       return;
     }
@@ -103,7 +112,10 @@ app.whenReady().then(() => {
     if (p === '/' || p === '') p = '/index.html';
     const file = path.normalize(path.join(ROOT, p));
     if (!file.startsWith(ROOT + path.sep)) return new Response('Not found', { status: 404 });
-    return net.fetch(pathToFileURL(file).toString());
+    // Never cache app files, so a new version can never show an old version's screens.
+    return net.fetch(pathToFileURL(file).toString()).then((r) => new Response(r.body, {
+      status: r.status, headers: { 'Content-Type': r.headers.get('content-type') || 'application/octet-stream', 'Cache-Control': 'no-store' },
+    }));
   });
   // "PC sound": hand over the system audio output (loopback) without a picker.
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
@@ -113,7 +125,8 @@ app.whenReady().then(() => {
   });
   session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => callback(wc.getURL().startsWith(ORIGIN)));
   ipcMain.handle('pm:hasProjector', () => !!projector());
-  createEditor();
+  ipcMain.on('pm:version', (e) => { e.returnValue = VERSION; });
+  session.defaultSession.clearCache().catch(() => {}).then(createEditor);
 });
 app.on('window-all-closed', () => app.quit());
 

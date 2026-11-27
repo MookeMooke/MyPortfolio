@@ -4,7 +4,7 @@ A browser app for projection mapping onto a wall. No install, no build step.
 
 ## Desktop app (Windows, no install)
 
-Download `ProjectionMapper-windows.zip`, right-click it and choose **Extract All**, then double-click
+Download `ProjectionMapper-V<number>.zip` (versions are listed in `CHANGELOG.md`; the number is shown in the app's top-left corner), right-click it and choose **Extract All**, then double-click
 `Projection Mapper.exe` in the extracted folder. Nothing is installed. It opens in a few seconds.
 
 There is also a single-file `ProjectionMapper.exe`. It unpacks itself on every start, so it shows nothing for
