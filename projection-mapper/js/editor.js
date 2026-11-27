@@ -346,7 +346,7 @@
 
   addEventListener('keydown', (e) => {
     if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'checkbox' && e.target.type !== 'range') return;
-    if ($('help').open || $('ask').open) return;
+    if ($('help').open || $('ask').open || $('remote').open) return;
     const p = P(), k = e.key, mod = e.ctrlKey || e.metaKey;
     if (mod && (k === 'z' || k === 'Z')) { e.preventDefault(); e.shiftKey ? store.redo() : store.undo(); return; }
     if (mod && (k === 'y' || k === 'Y')) { e.preventDefault(); store.redo(); return; }
@@ -452,6 +452,52 @@
   if (desktop) {
     $('selAudio').querySelector('[value=system]').textContent = 'Music: laptop sound';
     document.body.classList.add('desktop');
+
+    /* Phone remote: publish what the phone needs, apply what it sends. */
+    let stateTimer = 0;
+    const pushState = () => {
+      clearTimeout(stateTimer);
+      stateTimer = setTimeout(() => {
+        const p = P();
+        window.pmDesktop.sendState({ scenes: p.scenes.map((x) => ({ id: x.id, name: x.name })), active: p.activeScene, blackout: p.settings.blackout, brightness: p.settings.brightness });
+      }, 60);
+    };
+    store.on((why) => { if (why !== 'drag') pushState(); });
+    pushState();
+    window.pmDesktop.onRemote((c) => {
+      const p = P();
+      if (c.scene && p.scenes.some((x) => x.id === c.scene)) p.activeScene = c.scene;
+      if (c.step) {
+        const i = p.scenes.findIndex((x) => x.id === p.activeScene);
+        p.activeScene = p.scenes[(i + c.step + p.scenes.length) % p.scenes.length].id;
+      }
+      if ('blackout' in c) p.settings.blackout = c.blackout;
+      if ('brightness' in c) p.settings.brightness = c.brightness;
+      store.changed('edit');
+      if (!('brightness' in c)) store.commit();
+    });
+    $('btnRemote').onclick = async () => {
+      const body = $('remoteBody');
+      body.replaceChildren('Starting…');
+      $('remote').showModal();
+      const info = await window.pmDesktop.remoteInfo();
+      if (!info.links.length) {
+        body.replaceChildren(h('p', { class: 'warn' }, info.error || 'This laptop is not on a network. Connect it to Wi-Fi, or link your phone by Bluetooth tethering, then open this again.'));
+        return;
+      }
+      const img = h('img', { alt: 'QR code for the phone remote', width: 240, height: 240, style: 'display:block;margin:8px auto;border-radius:8px' });
+      const addr = h('p', { class: 'muted', style: 'text-align:center;word-break:break-all;user-select:text' });
+      const show = (l) => { img.src = l.qr; addr.textContent = l.url; };
+      const pick = h('select', { onchange: (e) => show(info.links[+e.target.value]) }, info.links.map((l, i) => h('option', { value: i }, l.name)));
+      show(info.links[0]);
+      body.replaceChildren(...[
+        h('ol', null,
+          h('li', null, 'Put your phone on the same Wi-Fi as this laptop.'),
+          h('li', null, 'Scan this code with the phone camera.'),
+          h('li', null, 'If Windows asks about network access, choose Allow.')),
+        info.links.length > 1 ? field('Connection', pick) : null, img, addr,
+        h('p', { class: 'muted' }, 'No Wi-Fi? Turn on Bluetooth tethering on the phone, join it from Windows Bluetooth settings, then reopen this window and pick the Bluetooth connection.')].filter(Boolean));
+    };
   }
 
   store.onMessage((m) => {

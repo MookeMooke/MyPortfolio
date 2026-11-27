@@ -26,6 +26,7 @@
   <button id="btnRedo" title="Redo (Ctrl+Shift+Z)">Redo</button>
   <button id="btnExport" title="Save the layout to a file">Export</button>
   <button id="btnImport" title="Load a layout file">Import</button>
+  <button id="btnRemote" class="desktop-only" title="Control the projection from your phone">Phone remote</button>
   <button id="btnHelp">Help</button>
 </header>
 <main>
@@ -53,6 +54,11 @@
   <kbd>G</kbd> guides · <kbd>T</kbd> test pattern · <kbd>B</kbd> blackout · <kbd>1</kbd>–<kbd>9</kbd> scenes · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</p>
   <p class="muted">Everything saves automatically in this browser. Export saves the layout only; media files stay in this browser.</p>
   <form method="dialog"><button class="primary">Got it</button></form>
+</dialog>
+<dialog id="remote">
+  <h2>Phone remote</h2>
+  <div id="remoteBody"></div>
+  <form method="dialog"><button class="primary">Done</button></form>
 </dialog>
 <dialog id="ask">
   <form method="dialog">

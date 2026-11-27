@@ -3,6 +3,10 @@
 const { app, BrowserWindow, protocol, net, session, desktopCapturer, screen, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
+const http = require('http');
+const os = require('os');
+const fs = require('fs');
+const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const ORIGIN = 'app://local/';
@@ -80,3 +84,83 @@ app.whenReady().then(() => {
   createEditor();
 });
 app.on('window-all-closed', () => app.quit());
+
+/* ---------- Phone remote: a small web page served to phones on the local network ----------
+   Reachable over Wi-Fi or a Bluetooth network link. The address carries a private key, so
+   only someone who scanned the code can control the projection. */
+const remote = { token: '', port: 0, state: null, clients: new Set() };
+const HEADERS = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' };
+
+function cleanCommand(c) {
+  const out = {};
+  if (!c || typeof c !== 'object') return out;
+  if (typeof c.scene === 'string' && c.scene.length < 40) out.scene = c.scene;
+  if (c.step === 1 || c.step === -1) out.step = c.step;
+  if (typeof c.blackout === 'boolean') out.blackout = c.blackout;
+  if (typeof c.brightness === 'number' && isFinite(c.brightness)) out.brightness = Math.max(0, Math.min(1, c.brightness));
+  return out;
+}
+function startRemote() {
+  const file = path.join(app.getPath('userData'), 'remote.json');
+  let cfg = {};
+  try { cfg = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { /* first run */ }
+  if (!/^[a-f0-9]{16}$/.test(cfg.token || '')) {
+    cfg = { token: crypto.randomBytes(8).toString('hex') };
+    try { fs.writeFileSync(file, JSON.stringify(cfg)); } catch (e) { /* key just won't survive a restart */ }
+  }
+  remote.token = cfg.token;
+  const page = fs.readFileSync(path.join(__dirname, 'remote.html'));
+  const prefix = '/r/' + remote.token;
+  const server = http.createServer((req, res) => {
+    const url = (req.url || '').split('?')[0];
+    if (!url.startsWith(prefix)) { res.writeHead(404, HEADERS); res.end(); return; }
+    const route = url.slice(prefix.length);
+    if ((route === '' || route === '/') && req.method === 'GET') {
+      res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8' }, HEADERS)); res.end(page);
+    } else if (route === '/events' && req.method === 'GET') {
+      res.writeHead(200, Object.assign({ 'Content-Type': 'text/event-stream', Connection: 'keep-alive' }, HEADERS));
+      res.write('retry: 2000\n\n');
+      if (remote.state) res.write('data: ' + JSON.stringify(remote.state) + '\n\n');
+      remote.clients.add(res);
+      req.on('close', () => remote.clients.delete(res));
+    } else if (route === '/cmd' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (d) => { body += d; if (body.length > 2000) req.destroy(); });
+      req.on('end', () => {
+        let cmd = {};
+        try { cmd = cleanCommand(JSON.parse(body)); } catch (e) { /* ignore bad input */ }
+        if (editor && Object.keys(cmd).length) editor.webContents.send('pm:remote', cmd);
+        res.writeHead(204, HEADERS); res.end();
+      });
+    } else { res.writeHead(404, HEADERS); res.end(); }
+  });
+  let port = 47800;
+  server.on('error', (e) => { if (e.code === 'EADDRINUSE' && port < 47810) server.listen(++port, '0.0.0.0'); else remote.port = 0; });
+  server.on('listening', () => { remote.port = port; });
+  server.listen(port, '0.0.0.0');
+  setInterval(() => { for (const c of remote.clients) c.write(': keep-alive\n\n'); }, 20000);
+
+  ipcMain.on('pm:state', (e, state) => {
+    if (!editor || e.sender !== editor.webContents) return;
+    let json;
+    try { json = JSON.stringify(state); } catch (err) { return; }
+    if (json.length > 20000) return;
+    remote.state = JSON.parse(json);
+    for (const c of remote.clients) c.write('data: ' + json + '\n\n');
+  });
+  ipcMain.handle('pm:remoteInfo', async () => {
+    if (!remote.port) return { links: [], error: 'The remote could not start on this computer.' };
+    const links = [];
+    const nets = os.networkInterfaces();
+    for (const name of Object.keys(nets)) for (const n of nets[name]) {
+      if (n.family !== 'IPv4' || n.internal || n.address.startsWith('169.254.')) continue;
+      links.push({ name, url: `http://${n.address}:${remote.port}${prefix}/` });
+    }
+    const rank = (l) => (/wi-?fi|wlan|wireless/i.test(l.name) ? 0 : /bluetooth/i.test(l.name) ? 1 : 2);
+    links.sort((a, b) => rank(a) - rank(b));
+    const QR = require('qrcode');
+    for (const l of links) l.qr = await QR.toDataURL(l.url, { margin: 2, width: 320 });
+    return { links };
+  });
+}
+app.whenReady().then(startRemote);

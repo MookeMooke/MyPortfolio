@@ -8,6 +8,9 @@ A browser app for projection mapping onto a wall. No install, no build step.
 
 - The projector window opens fullscreen on the projector by itself. Esc closes it.
 - Music-reactive effects follow whatever the laptop is playing (Spotify, YouTube, anything). No setup.
+- **Phone remote**: click **Phone remote**, scan the code with your phone. Switch scenes, blackout and brightness from the sofa.
+  The phone needs to reach the laptop: same Wi-Fi, or a Bluetooth link (turn on Bluetooth tethering on the phone and join it
+  from Windows Bluetooth settings). No phone app and no internet needed. Allow network access if Windows asks.
 - Layouts and media are kept in your Windows user profile, so they survive restarts.
 - Windows may show a "Windows protected your PC" warning the first time, because the app is not code-signed. Choose **More info**, then **Run anyway**.
 
