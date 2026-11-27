@@ -4,7 +4,15 @@ A browser app for projection mapping onto a wall. No install, no build step.
 
 ## Desktop app (Windows, no install)
 
-`ProjectionMapper.exe` is a single file. Double-click it; nothing is installed.
+Download `ProjectionMapper-windows.zip`, right-click it and choose **Extract All**, then double-click
+`Projection Mapper.exe` in the extracted folder. Nothing is installed. It opens in a few seconds.
+
+There is also a single-file `ProjectionMapper.exe`. It unpacks itself on every start, so it shows nothing for
+up to a minute before the window appears. Prefer the zip.
+
+**Brick equalizer**: click **+ Brick EQ**. Enter how many bricks across and how many rows are inside the surface,
+drag the points until the white lines sit on your mortar, then untick **Show brick lines**. Proportions are
+standard UK bricks (215 × 65 mm, 10 mm joints, half-brick offset per row).
 
 - The projector window opens fullscreen on the projector by itself. Esc closes it.
 - Music-reactive effects follow whatever the laptop is playing (Spotify, YouTube, anything). No setup.
@@ -14,7 +22,7 @@ A browser app for projection mapping onto a wall. No install, no build step.
 - Layouts and media are kept in your Windows user profile, so they survive restarts.
 - Windows may show a "Windows protected your PC" warning the first time, because the app is not code-signed. Choose **More info**, then **Run anyway**.
 
-The `.exe` is built by the "Projection Mapper desktop build" GitHub Action (download it from the run's Artifacts),
+Both are built by the "Projection Mapper desktop build" GitHub Action (download it from the run's Artifacts),
 or locally with `npm install` then `npm run dist`. `npm start` runs it without packaging.
 
 ## Run it in a browser instead

@@ -27,6 +27,10 @@
       h24: true,
       seconds: false,
       date: true,
+      bricksX: 8,
+      bricksY: 12,
+      brickShift: false,
+      brickGuide: false,
     };
   };
 

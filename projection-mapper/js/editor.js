@@ -75,7 +75,7 @@
         if (!confirm(`Delete "${sc.name}"?`)) return;
         edit(() => { p.scenes = p.scenes.filter((x) => x !== sc); if (p.activeScene === sc.id) p.activeScene = p.scenes[0].id; });
       })))));
-    kids.push(h('h3', null, 'Surfaces', h('button', { class: 'small', onclick: addSurface }, '+ Add')));
+    kids.push(h('h3', null, 'Surfaces', h('span', null, h('button', { class: 'small', onclick: addBrickEq, title: 'Preset: equalizer mapped onto wall bricks' }, '+ Brick EQ'), ' ', h('button', { class: 'small', onclick: addSurface }, '+ Add'))));
     kids.push(h('div', { class: 'list' }, p.surfaces.length ? p.surfaces.map((s) => item(s, ui.selType === 'surface' && ui.selId === s.id, () => select('surface', s.id),
       h('input', { type: 'checkbox', checked: s.visible, title: 'Show / hide', onclick: (e) => e.stopPropagation(), onchange: (e) => edit(() => { s.visible = e.target.checked; }) }),
       h('span', { class: 'name' }, s.name))) : h('div', { class: 'empty' }, 'Add a surface to start mapping.')));
@@ -112,6 +112,21 @@
     for (const sc of p.scenes) sc.contents[s.id] = PM.defaultContent(sc.id === p.activeScene ? 'grid' : 'none');
     store.changed('edit'); store.commit();
     select('surface', s.id);
+  }
+  /* Preset: an equalizer that lights real bricks. Starts in line-up mode. */
+  function addBrickEq() {
+    const p = P(), s = PM.makeSurface(p.surfaces.length + 1);
+    s.name = 'Brick equalizer';
+    // 8 bricks x 12 rows of UK bricks (225 x 75 mm with joints) is 1.8 m x 0.9 m: keep that shape on screen.
+    const hh = 0.5, w = hh * 2 * (p.settings.outH / p.settings.outW), x0 = 0.5 - w / 2, y0 = 0.25;
+    s.points = [[x0, y0], [x0 + w, y0], [x0, y0 + hh], [x0 + w, y0 + hh]];
+    p.surfaces.push(s);
+    for (const sc of p.scenes) sc.contents[s.id] = PM.defaultContent('none');
+    Object.assign(store.scene().contents[s.id], { type: 'effect', effect: 'bricks', bricksX: 8, bricksY: 12, brickGuide: true,
+      colorA: '#00e676', colorB: '#ffd23f', colorC: '#ff3d3d', react: 1 });
+    store.changed('edit'); store.commit();
+    select('surface', s.id);
+    toast(PM.audio.active ? 'Line up the white lines with your mortar, then untick "Show brick lines".' : ('Line up the white lines with your mortar, untick "Show brick lines", and turn Music on in the top bar.'));
   }
   function startMask() {
     tool = 'mask'; draft = []; cursor = null;
@@ -219,6 +234,13 @@
     }
     if (t === 'effect') {
       out.push(choose('Effect', c, 'effect', PM.EFFECTS));
+      if (c.effect === 'bricks') {
+        const num = (label, k, max) => field(label, h('input', { type: 'number', min: 1, max, step: 1, value: c[k],
+          oninput: (e) => { const v = Math.round(+e.target.value); if (v >= 1 && v <= max) { c[k] = v; live(); } }, onchange: () => store.commit() }));
+        out.push(num('Bricks across', 'bricksX', 60), num('Rows of bricks', 'bricksY', 60));
+        out.push(check('Show brick lines', c, 'brickGuide'), check('Shift rows', c, 'brickShift'));
+        out.push(h('div', { class: 'muted' }, 'Count the bricks inside the surface on your wall and enter them. Turn on brick lines, then drag the points until the white lines sit on the mortar. Use Shift rows if the half-brick offset is on the wrong rows.'));
+      }
       out.push(field('Colours',
         ...['colorA', 'colorB', 'colorC'].map((k) => h('input', { type: 'color', value: c[k], oninput: (e) => { c[k] = e.target.value; live(); }, onchange: () => store.commit() }))));
       out.push(range('Speed', c, 'speed', 0, 4, 0.05), range('Size', c, 'scale', 0.2, 4, 0.05));

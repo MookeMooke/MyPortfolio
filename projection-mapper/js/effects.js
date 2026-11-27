@@ -15,6 +15,7 @@ uniform vec3 uA, uB, uC;
 uniform float uSpec[32];
 uniform sampler2D uTex;
 uniform vec2 uFlip;
+uniform vec4 uBrick; // bricks across, courses, shift alternate rows, show outlines
 #define T (uTime*uSpeed)
 #define BASS (uAudio.x*uReact)
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -99,6 +100,24 @@ void main(){
       float y=1.-uv.y;
       float m=step(y,v)*step(.12,fx)*step(fx,.88);
       vec3 c=mix(uA,uB,y); c=mix(c,uC,smoothstep(.7,1.,y)); return vec4(c*m,m); }`,
+    /* Equalizer drawn brick by brick. UK brick 215 x 65 mm with 10 mm mortar joints (225 x 75 mm per
+       brick and joint), stretcher bond: every other course is shifted by half a brick. */
+    bricks: `vec4 effect(vec2 uv){
+      float nx=max(1.,uBrick.x), ny=max(1.,uBrick.y);
+      float row=floor(uv.y*ny); float up=ny-1.-row;
+      float off=mod(row+uBrick.z,2.)*.5;
+      float x=uv.x*nx+off; float col=floor(x);
+      vec2 f=vec2(fract(x),fract(uv.y*ny));
+      vec2 j=vec2(10./225.,10./75.)*.5;
+      float inside=step(j.x,f.x)*step(f.x,1.-j.x)*step(j.y,f.y)*step(f.y,1.-j.y);
+      if(uBrick.w>.5) return vec4(mix(vec3(1.),vec3(.1,.1,.14),inside),1.);
+      float cx=clamp((col+.5-off)/nx,0.,1.);
+      float v=spec(cx)*(.4+uReact);
+      v=max(v,.09+.07*sin(T*2.+col*1.7));
+      float lit=clamp(v*ny-up,0.,1.);
+      float h=(up+.5)/ny;
+      vec3 c=mix(uA,uB,smoothstep(0.,.6,h)); c=mix(c,uC,smoothstep(.6,1.,h));
+      float a=lit*inside; return vec4(c*a,a); }`,
     pulse: `vec4 effect(vec2 uv){
       float l=mix(.55+.25*sin(T*.8),1.,clamp(uAudio.x*uReact*2.,0.,1.));
       return vec4(mix(uA,uB,.5+.5*sin(T*.2))*l,1.); }`,
@@ -119,6 +138,7 @@ void main(){
     ['outline', 'Edge outline'],
     ['stars', 'Stars'],
     ['scan', 'Scan line'],
+    ['bricks', 'Brick equalizer (music)'],
     ['bars', 'Spectrum bars (music)'],
     ['pulse', 'Pulse (music)'],
   ];
