@@ -38,6 +38,8 @@
         });
       }
       ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // A context made without a click can start paused, which reads as silence.
+      if (ctx.state !== 'running') await ctx.resume().catch(() => {});
       analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.6;
@@ -58,6 +60,7 @@
       levels.bass = levels.mid = levels.treble = levels.level = 0;
       levels.spec.fill(0);
     },
+    state() { return ctx ? ctx.state : 'off'; },
     resume() { if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {}); },
     /* Call once per frame. */
     update(gain) {
@@ -69,6 +72,7 @@
         raw[i] = avg(data, bins[i][0], bins[i][1]) / 255;
         if (raw[i] > max) max = raw[i];
       }
+      levels.raw = max; // before auto-levelling: tells real sound from silence
       peak = Math.max(peak * 0.997, max, 0.12);
       const g = (gain || 1) / peak;
       for (let i = 0; i < N; i++) {

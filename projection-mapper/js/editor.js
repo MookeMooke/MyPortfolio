@@ -177,7 +177,7 @@
     const p = P(), s = selSurface(), m = selMask(), sc = store.scene();
     const c = s ? sc.contents[s.id] : null;
     const key = JSON.stringify([ui.selType, ui.selId, sc.id, c && [c.type, c.effect, c.mediaId, c.mediaIds], s && [s.cols, s.rows, s.name], m && [m.mode, m.name],
-      mediaList.map((x) => x.id), p.settings.weather]);
+      mediaList.map((x) => x.id), p.settings.weather, PM.audio.active]);
     if (!force && key === inspKey) return;
     inspKey = key;
     const out = [];
@@ -241,6 +241,10 @@
     }
     if (t === 'effect') {
       out.push(choose('Effect', c, 'effect', PM.EFFECTS));
+      if ((c.effect === 'bricks' || c.effect === 'bars' || c.effect === 'pulse') && !PM.audio.active) {
+        out.push(h('div', { class: 'warn' }, 'Music is off, so this will not react.'));
+        out.push(h('div', { class: 'btnrow' }, h('button', { class: 'primary', onclick: () => { localStorage.setItem('pm.audioChoice', musicSource()); setAudio(musicSource()); } }, 'Turn music on')));
+      }
       if (c.effect === 'bricks') {
         const fits = h('div', { class: 'muted' });
         const showFits = () => { const b = PM.brickLayout(c); fits.textContent = `Fits ${b.nx.toFixed(1)} bricks across × ${b.ny.toFixed(1)} rows.`; };
@@ -455,12 +459,29 @@
       P().settings.audio = src; store.changed('input');
     } catch (err) {
       PM.audio.stop();
-      if (!quiet) toast(err && err.name === 'NotAllowedError' ? 'Sound access was not allowed.' : (err && err.message) || 'Could not start sound input.');
+      if (!quiet) toast('Music could not start: ' + (err && err.name === 'NotAllowedError' ? 'sound access was not allowed.' : (err && err.message) || 'unknown reason.'));
     }
-    syncTop();
+    syncTop(); renderInspector();
   }
-  $('selAudio').onchange = (e) => setAudio(e.target.value);
-  PM.audio.onended = syncTop;
+  const musicSource = () => (desktop ? 'system' : 'mic');
+  $('selAudio').onchange = (e) => { localStorage.setItem('pm.audioChoice', e.target.value); setAudio(e.target.value); };
+  PM.audio.onended = () => { syncTop(); renderInspector(); };
+  // Any click or key also wakes sound analysis if the system paused it.
+  addEventListener('pointerdown', () => PM.audio.resume(), true);
+  addEventListener('keydown', () => PM.audio.resume(), true);
+  /* Says plainly whether music is being heard. */
+  let heardAt = 0;
+  function audioStatus(audio) {
+    const el = $('audioStatus');
+    if (audio && audio.raw > 0.02) heardAt = Date.now();
+    let text = 'Music: off', cls = 'pill';
+    if (PM.audio.active) {
+      if (PM.audio.state() !== 'running') text = 'Music: paused, click anywhere';
+      else if (Date.now() - heardAt < 3000) { text = 'Music: hearing sound'; cls = 'pill on'; }
+      else text = 'Music: on, but silent';
+    }
+    if (el.textContent !== text) { el.textContent = text; el.className = cls; }
+  }
 
   async function openOutput() {
     if (desktop) {
@@ -485,8 +506,9 @@
   /* Desktop app: called once by the shell after load. */
   const desktop = !!window.pmDesktop;
   window.PMDesktopReady = (info) => {
-    if (!localStorage.getItem('pm.desktopAudio')) { localStorage.setItem('pm.desktopAudio', '1'); P().settings.audio = 'system'; }
-    if (P().settings.audio === 'system') setAudio('system', true);
+    // Listen to the laptop's sound from the start, unless the user chose otherwise.
+    const choice = localStorage.getItem('pm.audioChoice') || 'system';
+    if (choice !== 'off') setAudio(choice);
     if (info && info.projector && P().surfaces.length) openOutput();
   };
   if (desktop) {
@@ -564,6 +586,7 @@
       audio = PM.audio.update(P().settings.audioGain);
       store.send({ t: 'audio', a: { bass: audio.bass, mid: audio.mid, treble: audio.treble, level: audio.level, spec: audio.spec } });
     }
+    audioStatus(audio);
     renderer.render(P(), audio);
     const dpr = window.devicePixelRatio || 1;
     octx.setTransform(dpr, 0, 0, dpr, 0, 0);

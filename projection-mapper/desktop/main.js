@@ -30,6 +30,8 @@ function fatal(err) {
 process.on('uncaughtException', fatal);
 process.on('unhandledRejection', fatal);
 
+// Sound analysis must start without waiting for a click.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }]);
 
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -76,7 +78,12 @@ function createEditor() {
   editor.webContents.on('render-process-gone', (e, d) => fatal(new Error('Window process stopped: ' + d.reason)));
   editor.webContents.on('did-finish-load', () => {
     if (SELFTEST) {
-      editor.webContents.executeJavaScript('({ pm: !!window.PM, desktop: !!window.pmDesktop, webgl: !!window.PMDebug, lists: document.querySelectorAll("#left h3").length })')
+      const probe = `(async () => {
+        const r = { pm: !!window.PM, desktop: !!window.pmDesktop, webgl: !!window.PMDebug, lists: document.querySelectorAll("#left h3").length };
+        try { await PM.audio.start('system'); r.audio = 'started'; r.audioContext = PM.audio.state(); } catch (e) { r.audio = 'failed: ' + (e && (e.name + ' ' + e.message)); }
+        return r;
+      })()`;
+      editor.webContents.executeJavaScript(probe, true)
         .then((r) => selfTestDone(Object.assign({ ok: r.pm && r.desktop && r.lists === 4, visible: editor.isVisible(), remotePort: remote.port }, r)))
         .catch(fatal);
       return;
