@@ -123,10 +123,10 @@
     p.surfaces.push(s);
     for (const sc of p.scenes) sc.contents[s.id] = PM.defaultContent('none');
     Object.assign(store.scene().contents[s.id], { type: 'effect', effect: 'bricks', bricksX: 8, bricksY: 12, brickGuide: true,
-      colorA: '#00e676', colorB: '#ffd23f', colorC: '#ff3d3d', react: 1 });
+      colorA: '#ff9a2e', colorB: '#ffb648', colorC: '#ffd27a', react: 1 });
     store.changed('edit'); store.commit();
     select('surface', s.id);
-    toast(PM.audio.active ? 'Line up the white lines with your mortar, then untick "Show brick lines".' : ('Line up the white lines with your mortar, untick "Show brick lines", and turn Music on in the top bar.'));
+    toast(PM.audio.active ? 'Line up the lines with your mortar, then untick "Show brick lines".' : ('Line up the lines with your mortar, untick "Show brick lines", and turn Music on in the top bar.'));
   }
   function startMask() {
     tool = 'mask'; draft = []; cursor = null;
@@ -239,7 +239,7 @@
           oninput: (e) => { const v = Math.round(+e.target.value); if (v >= 1 && v <= max) { c[k] = v; live(); } }, onchange: () => store.commit() }));
         out.push(num('Bricks across', 'bricksX', 60), num('Rows of bricks', 'bricksY', 60));
         out.push(check('Show brick lines', c, 'brickGuide'), check('Shift rows', c, 'brickShift'));
-        out.push(h('div', { class: 'muted' }, 'Count the bricks inside the surface on your wall and enter them. Turn on brick lines, then drag the points until the white lines sit on the mortar. Use Shift rows if the half-brick offset is on the wrong rows.'));
+        out.push(h('div', { class: 'muted' }, 'Count the bricks inside the surface on your wall and enter them. Turn on brick lines, then drag the points until the lines sit on the mortar. Use Shift rows if the half-brick offset is on the wrong rows.'));
       }
       out.push(field('Colours',
         ...['colorA', 'colorB', 'colorC'].map((k) => h('input', { type: 'color', value: c[k], oninput: (e) => { c[k] = e.target.value; live(); }, onchange: () => store.commit() }))));

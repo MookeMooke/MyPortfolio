@@ -110,11 +110,11 @@ void main(){
       vec2 f=vec2(fract(x),fract(uv.y*ny));
       vec2 j=vec2(10./225.,10./75.)*.5;
       float inside=step(j.x,f.x)*step(f.x,1.-j.x)*step(j.y,f.y)*step(f.y,1.-j.y);
-      if(uBrick.w>.5) return vec4(mix(vec3(1.),vec3(.1,.1,.14),inside),1.);
+      if(uBrick.w>.5){ float m=1.-inside; return vec4(uB*m,m); }
       float cx=clamp((col+.5-off)/nx,0.,1.);
       float v=spec(cx)*(.4+uReact);
       v=max(v,.09+.07*sin(T*2.+col*1.7));
-      float lit=clamp(v*ny-up,0.,1.);
+      float lit=clamp((v*ny-up)*4.,0.,1.);
       float h=(up+.5)/ny;
       vec3 c=mix(uA,uB,smoothstep(0.,.6,h)); c=mix(c,uC,smoothstep(.6,1.,h));
       float a=lit*inside; return vec4(c*a,a); }`,

@@ -11,7 +11,7 @@ There is also a single-file `ProjectionMapper.exe`. It unpacks itself on every s
 up to a minute before the window appears. Prefer the zip.
 
 **Brick equalizer**: click **+ Brick EQ**. Enter how many bricks across and how many rows are inside the surface,
-drag the points until the white lines sit on your mortar, then untick **Show brick lines**. Proportions are
+drag the points until the lines sit on your mortar, then untick **Show brick lines**. Proportions are
 standard UK bricks (215 × 65 mm, 10 mm joints, half-brick offset per row).
 
 - The projector window opens fullscreen on the projector by itself. Esc closes it.
