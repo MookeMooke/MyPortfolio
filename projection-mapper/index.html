@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projection Mapper</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header id="top">
+  <div class="brand">Projection Mapper</div>
+  <button id="btnOutput" class="primary">Open projector window</button>
+  <span id="outStatus" class="pill">Projector: not connected</span>
+  <label class="tog" title="Show alignment points and lines on the wall (G)"><input type="checkbox" id="chkGuides" checked> Guides on wall</label>
+  <label class="tog" title="Full-screen alignment grid (T)"><input type="checkbox" id="chkTest"> Test pattern</label>
+  <label class="tog" title="Turn the projection black (B)"><input type="checkbox" id="chkBlack"> Blackout</label>
+  <label class="tog">Brightness <input type="range" id="rngBright" min="0" max="1" step="0.01"></label>
+  <select id="selAudio" title="Sound source for music-reactive effects">
+    <option value="off">Music: off</option>
+    <option value="mic">Music: microphone</option>
+    <option value="system">Music: PC sound</option>
+  </select>
+  <canvas id="meter" width="72" height="20" title="Sound level"></canvas>
+  <span class="spacer"></span>
+  <button id="btnUndo" title="Undo (Ctrl+Z)">Undo</button>
+  <button id="btnRedo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+  <button id="btnExport" title="Save the layout to a file">Export</button>
+  <button id="btnImport" title="Load a layout file">Import</button>
+  <button id="btnHelp">Help</button>
+</header>
+<main>
+  <aside id="left"></aside>
+  <section id="stage">
+    <canvas id="gl"></canvas>
+    <canvas id="ov"></canvas>
+    <div id="hint"></div>
+  </section>
+  <aside id="right"></aside>
+</main>
+<div id="toast"></div>
+<dialog id="help">
+  <h2>How to use</h2>
+  <ol>
+    <li><b>Open projector window</b>, drag it onto the projector screen if needed, then click it for fullscreen.</li>
+    <li><b>Add surface</b>. Drag its yellow points until it fits the object on your wall. Watch the wall, not the laptop.</li>
+    <li>For curved things, raise <b>Grid</b> in the right panel to get more points.</li>
+    <li>Pick <b>Content</b> for the surface: image, video, effect, clock and so on.</li>
+    <li><b>Add mask</b> to black out an area. Click to place points, Enter to finish.</li>
+    <li><b>Scenes</b> keep the same shapes with different content. Switch with keys 1 to 9.</li>
+  </ol>
+  <h3>Keys</h3>
+  <p><kbd>Arrows</kbd> nudge 1 pixel · <kbd>Shift</kbd>+arrows 10 pixels · <kbd>Tab</kbd> next point · <kbd>Del</kbd> remove mask point<br>
+  <kbd>G</kbd> guides · <kbd>T</kbd> test pattern · <kbd>B</kbd> blackout · <kbd>1</kbd>–<kbd>9</kbd> scenes · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</p>
+  <p class="muted">Everything saves automatically in this browser. Export saves the layout only; media files stay in this browser.</p>
+  <form method="dialog"><button class="primary">Got it</button></form>
+</dialog>
+<input type="file" id="fileMedia" accept="image/*,video/*" multiple hidden>
+<input type="file" id="fileImport" accept="application/json,.json" hidden>
+<script src="js/store.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/editor.js"></script>
+</body>
+</html>
